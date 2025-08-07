@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tabela de Preços por Distância</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background-color: #fdfdfd;
+      color: #222;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    input[type="text"] {
+      display: block;
+      margin: 0 auto 30px auto;
+      padding: 10px;
+      font-size: 16px;
+      width: 80%;
+      max-width: 500px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      display: block;
+      margin: 0 auto 20px auto;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 5px;
+      border: none;
+      background-color: #2196F3;
+      color: white;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #0b7dda;
+    }
+    .grupo {
+      margin-bottom: 30px;
+      padding: 20px;
+      border-left: 10px solid;
+      background-color: #fff;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .grupo h2 {
+      margin-top: 0;
+    }
+    .grupo ul {
+      padding-left: 20px;
+      font-size: 1em;
+      line-height: 1.6em;
+    }
+    .grupo.hidden {
+      display: none;
+    }
+    .grupo li {
+      display: list-item;
+    }
+    .grupo li.hidden {
+      display: none;
+    }
+    .verde { border-color: #4CAF50; }
+    .azul { border-color: #2196F3; }
+    .azul-claro { border-color: #03A9F4; }
+    .amarelo { border-color: #FFC107; }
+    .vermelho { border-color: #F44336; }
+    .marrom { border-color: #795548; }
+  </style>
+</head>
+<body>
+
+  <h1>Tabela de Preços por Distância e Valor</h1>
+
+  <input type="text" id="search" placeholder="Digite o nome do bairro..." />
+
+  <button id="downloadPdf">Baixar PDF</button>
+
+  <div id="bairros"></div>
+
+  <!-- Biblioteca html2pdf.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <script>
+    const dados = {
+      "Próximos ao Centro – R$ 8,00": [
+        "Barra Funda", "Centro",
+        "Vale do Sol ou Por do Sol", "Vila Feliz",
+        "Vila Ivone", "Vila Social", "Vila Brasil", "Vila Formosa", "Vila Vera Cruz"
+      ],
+      "Média Distância – R$ 10,00": [
+        "Albino Biachi", "Catuaí 1 e 2", "Cazarin", "Country Club", "Florais do Lago", "Fraternidade", "Igrejinha", "São Geraldo",
+        "Jardim Aclimação", "Jardim Alvorada", "Jardim América", "Jardim Amizade",
+        "Jardim Apucarana", "Jardim das Flores", "Jardim Diamantina", "Jardim Espanha", "Jardim Celmira",
+        "Jardim Europa", "Jardim Figueira", "Jardim Iguatemi",
+        "Jardim Laranjeiras", "Jardim Mercadante", "Jardim Menegazzo", "Jardim São Pedro", "Jardim Biguaçu",
+        "Jardim Morumbi", "Jardim Ouro Verde", "Jardim Paulista", "Jardim Pinheiros", "Jardim Cidade Alta",
+        "Jardim Ponta Grossa", "Jardim Presidente Kennedy", "Jardim Marabá", "Jardim Trabalhista",
+        "Morada do Sol", "Monte Castelo", "Osmar Guaraci Freire", "Portal do Lago",
+        "Residencial Franca", "Residencial Miguel Sochacki", "Residencial Santa Cândida", "Residencial Malibu", "Solar da Toscana",
+        "Vila Agari", "Vila Isabel", "Vila Apucaraninha", "Vila Brasil", "Vila Carlos", "Vila Flamboyant", "Vila das Paineiras",
+        "Vila Jorge", "Vila José", "Vila Martins", "Vila Santa Rosa", "Vila Frankó", "Village das Cerejeiras",
+        "Vila Operária", "Vila Regina", "Vila São Francisco", "Vila São José",
+        "Vila Vitória e Vitória Régia"
+      ],
+      "Longa Distância – R$ 12,00": [
+        "Afonso Camargo", "Casa Grande", "Castelo Branco", "Catuaí 3", "Gramados", "IBC",
+        "Interlagos", "Jardim Flamingos", "Jardim Novo Horizonte", "Jardim Guanabara", "Jardim Independência", "João Goulart", "João Paulo",
+        "Lot. Belvedere", "Marcos Freire", "Mathias Hoffman", "Mutirão Projeto Bóia Fria", "Santa Helena", "Recanto do Lago",
+        "Tancredo Neves", "Tibagi", "Vale Verde", "Vila Isabela 1 e 2", "Vila São Miguel", "Villagio Di Roma",
+        "Vila Nova 1 e 2", "Vila Santa Lorena", "Jardim Milani", "Solar Toscana", "Loteamento Central", "Parque Bela Vista"
+      ],
+      "Afastados – R$ 15,00": [
+        "Adriano Correia", "Araucária", "Cidade Educação", "Colonial 1, 2 e 3", "Djalma Mendes",
+        "Dom Romeu", "Fariz Gebrim", "Jardim Aeroporto", "Jardim Esperança", "Jardim Itália", "Jardim Santos Dumont",
+        "Jardim Paraíso", "Jardim Primavera", "Jardim Santiago", "Jardim Taroba", "Jardim Aviação", "Jardim Paraná", "Jardim Cerejeira",
+        "Lot Santa Maria", "Marissol 1 e 2", "Mega Park", "Michel Soni", "Monte Sião",
+        "NH das Indústrias", "Parque da Raposa 1, 2 e 3", "Recanto Estoril", "Recanto Palmares",
+        "Residencial Bom Retiro", "Residencial Garcia", "Residencial Miriam", "Vila Rural Nova Ukrania",
+        "Residencial Veneza", "Sanches dos Santos", "Sumatra e Jaçanã", "Orlando Bacarin / Colônia dos Novos Produtores"
+      ],
+      "Afastados – R$ 20,00": [
+        "Aricanduva", "Barreiro", "Contorno Sul", "Molas Fama", "Parque Industrial Zona Norte", "Parque Industrial Zona Oeste", "Parque Industrial Galan",
+        "Pirapó", "Residencial Vivert", "Solo Sagrado", "Sabão Alpes", "Vila Nossa Sra da Conceição / Jardim Curitiba", "Jardim Paris", "Vila Reis"
+      ],
+      "Fora da Cidade – R$ 25,00 ou mais": [
+        "Arapongas – R$ 50,00"
+      ]
+    };
+
+    const cores = ["verde", "azul", "azul-claro", "amarelo", "vermelho", "marrom"];
+    const container = document.getElementById("bairros");
+
+    function renderizarGrupos() {
+      container.innerHTML = "";
+      Object.entries(dados).forEach(([grupo, bairros], index) => {
+        const div = document.createElement("div");
+        div.className = `grupo ${cores[index]}`;
+        div.innerHTML = `<h2>${grupo}</h2><ul>` +
+          bairros.map(b => `<li>${b}</li>`).join("") +
+          `</ul>`;
+        container.appendChild(div);
+      });
+    }
+
+    renderizarGrupos();
+
+    const searchInput = document.getElementById("search");
+    searchInput.addEventListener("input", () => {
+      const termo = searchInput.value.toLowerCase();
+
+      document.querySelectorAll(".grupo").forEach(grupo => {
+        let algumVisivel = false;
+        grupo.querySelectorAll("li").forEach(li => {
+          const texto = li.textContent.toLowerCase();
+          const corresponde = texto.includes(termo);
+          li.classList.toggle("hidden", !corresponde);
+          if (corresponde) algumVisivel = true;
+        });
+        grupo.classList.toggle("hidden", !algumVisivel);
+      });
+    });
+
+    document.getElementById("downloadPdf").addEventListener("click", () => {
+      const element = document.getElementById("bairros");
+      const opt = {
+        margin: 0.5,
+        filename: 'Tabela_de_Precos.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, letterRendering: true },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+      };
+      html2pdf().set(opt).from(element).save();
+    });
+  </script>
+
+</body>
+</html>
